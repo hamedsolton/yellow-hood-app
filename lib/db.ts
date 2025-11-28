@@ -125,22 +125,29 @@ export function addTransaction(
   userId: string,
   transactionData: Omit<Transaction, "id" | "date">
 ): Transaction {
-  const newTransaction: Transaction = {
+  const newTransaction: Transaction & { user_id: string } = {
     id: generateId(),
     date: new Date(),
+    user_id: userId,
     ...transactionData,
   };
 
-  db.transactions.push(newTransaction);
+  db.transactions.push(newTransaction as Transaction);
   return newTransaction;
 }
 
 export function getTransactions(userId: string): Transaction[] {
-  // Assuming transactions are linked to users via wallet or user_id
-  // You may need to adjust this based on your transaction structure
+  // Get wallet for user to find transactions
+  const wallet = getWallet(userId);
+  if (!wallet) {
+    return [];
+  }
+  
+  // Filter transactions by user_id (we'll need to add user_id to transactions)
+  // For now, we'll store transactions with a user_id reference
   return db.transactions.filter((tx) => {
-    // This is a placeholder - adjust based on how transactions are linked to users
-    return true; // For now, return all transactions
+    // Check if transaction has user_id property (we'll add this when creating transactions)
+    return (tx as any).user_id === userId;
   });
 }
 
