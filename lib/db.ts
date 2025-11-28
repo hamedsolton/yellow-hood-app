@@ -6,6 +6,7 @@ interface Database {
   wallets: Wallet[];
   sessions: Session[];
   transactions: Transaction[];
+  passwords: Record<string, string>; // user_id -> password
 }
 
 // Singleton pattern using globalThis to persist data during hot-reload
@@ -20,6 +21,7 @@ if (!globalForDb.db) {
     wallets: [],
     sessions: [],
     transactions: [],
+    passwords: {},
   };
 }
 
@@ -41,12 +43,15 @@ export function findUser(email?: string, id?: string): User | undefined {
   return undefined;
 }
 
-export function createUser(userData: Omit<User, "id">): User {
+export function createUser(userData: Omit<User, "id">, password: string): User {
   const newUser: User = {
     id: generateId(),
     ...userData,
   };
   db.users.push(newUser);
+
+  // Store password
+  db.passwords[newUser.id] = password;
 
   // Create a wallet for the new user
   const newWallet: Wallet = {
@@ -57,6 +62,11 @@ export function createUser(userData: Omit<User, "id">): User {
   db.wallets.push(newWallet);
 
   return newUser;
+}
+
+export function verifyPassword(userId: string, password: string): boolean {
+  const storedPassword = db.passwords[userId];
+  return storedPassword === password;
 }
 
 // Session functions
@@ -87,6 +97,12 @@ export function findSession(token: string): Session | undefined {
   }
   
   return session;
+}
+
+export function deleteSession(token: string): boolean {
+  const initialLength = db.sessions.length;
+  db.sessions = db.sessions.filter((s) => s.token !== token);
+  return db.sessions.length < initialLength;
 }
 
 // Wallet functions
