@@ -43,6 +43,10 @@ export function findUser(email?: string, id?: string): User | undefined {
   return undefined;
 }
 
+export function findUserByVitrinId(vitrinUserId: string): User | undefined {
+  return db.users.find((user) => user.vitrin_user_id === vitrinUserId);
+}
+
 export function createUser(userData: Omit<User, "id">, password: string): User {
   const newUser: User = {
     id: generateId(),
@@ -67,6 +71,20 @@ export function createUser(userData: Omit<User, "id">, password: string): User {
 export function verifyPassword(userId: string, password: string): boolean {
   const storedPassword = db.passwords[userId];
   return storedPassword === password;
+}
+
+export function updateUser(
+  userId: string,
+  updates: Partial<Omit<User, "id">>
+): User | null {
+  const user = findUser(undefined, userId);
+  if (!user) {
+    return null;
+  }
+
+  // Update user properties
+  Object.assign(user, updates);
+  return user;
 }
 
 // Session functions
