@@ -8,7 +8,7 @@ const protectedRoutes = ["/home", "/wallet", "/games", "/settings"];
 // Auth routes
 const authRoutes = ["/login", "/register"];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("auth_token")?.value;
 
@@ -28,7 +28,7 @@ export function middleware(request: NextRequest) {
 
   // If token exists, validate it
   if (token) {
-    const session = findSession(token);
+    const session = await findSession(token);
     
     // If session is invalid or expired
     if (!session && isProtectedRoute) {

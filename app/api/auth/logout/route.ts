@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const token = authHeader.substring(7); // Remove "Bearer " prefix
 
     // Delete session
-    const deleted = deleteSession(token);
+    const deleted = await deleteSession(token);
     
     if (!deleted) {
       return NextResponse.json(

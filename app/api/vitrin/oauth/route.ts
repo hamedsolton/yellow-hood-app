@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     const vitrinUserId = `vitrin_${randomBytes(8).toString("hex")}`;
 
     // Update user: set vitrin_connected = true and vitrin_user_id
-    const updatedUser = updateUser(user.id, {
+    const updatedUser = await updateUser(user.id, {
       vitrin_connected: true,
       vitrin_user_id: vitrinUserId,
     });

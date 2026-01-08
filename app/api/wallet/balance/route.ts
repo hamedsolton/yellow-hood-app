@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     const { user } = authResult;
 
     // Get wallet for user
-    const wallet = getWallet(user.id);
+    const wallet = await getWallet(user.id);
 
     if (!wallet) {
       return NextResponse.json(

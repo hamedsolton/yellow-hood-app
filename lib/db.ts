@@ -1,176 +1,298 @@
 import type { User, Wallet, Session, Transaction } from "@/types";
-
-// Define the database structure
-interface Database {
-  users: User[];
-  wallets: Wallet[];
-  sessions: Session[];
-  transactions: Transaction[];
-  passwords: Record<string, string>; // user_id -> password
-}
-
-// Singleton pattern using globalThis to persist data during hot-reload
-const globalForDb = globalThis as unknown as {
-  db: Database | undefined;
-};
-
-// Initialize the database if it doesn't exist
-if (!globalForDb.db) {
-  globalForDb.db = {
-    users: [],
-    wallets: [],
-    sessions: [],
-    transactions: [],
-    passwords: {},
-  };
-}
-
-const db = globalForDb.db;
-
-// Helper function to generate unique IDs
-function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-}
+import { prisma } from "./prisma";
 
 // User functions
-export function findUser(email?: string, id?: string): User | undefined {
-  if (id) {
-    return db.users.find((user) => user.id === id);
+export async function findUser(email?: string, id?: string): Promise<User | undefined> {
+  try {
+    if (id) {
+      const user = await prisma.user.findUnique({
+        where: { id },
+        include: { wallet: true },
+      });
+      if (!user) return undefined;
+      return mapPrismaUserToUser(user);
+    }
+    if (email) {
+      const user = await prisma.user.findUnique({
+        where: { email },
+        include: { wallet: true },
+      });
+      if (!user) return undefined;
+      return mapPrismaUserToUser(user);
+    }
+    return undefined;
+  } catch (error) {
+    console.error("Error finding user:", error);
+    return undefined;
   }
-  if (email) {
-    return db.users.find((user) => user.email === email);
+}
+
+export async function findUserByVitrinId(vitrinUserId: string): Promise<User | undefined> {
+  try {
+    const user = await prisma.user.findFirst({
+      where: { vitrin_user_id: vitrinUserId },
+      include: { wallet: true },
+    });
+    if (!user) return undefined;
+    return mapPrismaUserToUser(user);
+  } catch (error) {
+    console.error("Error finding user by Vitrin ID:", error);
+    return undefined;
   }
-  return undefined;
 }
 
-export function findUserByVitrinId(vitrinUserId: string): User | undefined {
-  return db.users.find((user) => user.vitrin_user_id === vitrinUserId);
+export async function createUser(
+  userData: Omit<User, "id">,
+  password: string
+): Promise<User> {
+  try {
+    // Create user with wallet in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create user
+      const newUser = await tx.user.create({
+        data: {
+          email: userData.email,
+          username: userData.username,
+          avatar_url: userData.avatar_url,
+          theme: userData.theme,
+          vitrin_connected: userData.vitrin_connected,
+          vitrin_user_id: userData.vitrin_user_id,
+          password: password, // TODO: Hash password before storing
+        },
+      });
+
+      // Create wallet for the user
+      await tx.wallet.create({
+        data: {
+          user_id: newUser.id,
+          balance: 0,
+        },
+      });
+
+      return newUser;
+    });
+
+    // Fetch the created user with wallet
+    const user = await prisma.user.findUnique({
+      where: { id: result.id },
+      include: { wallet: true },
+    });
+
+    if (!user) throw new Error("Failed to create user");
+    return mapPrismaUserToUser(user);
+  } catch (error) {
+    console.error("Error creating user:", error);
+    throw error;
+  }
 }
 
-export function createUser(userData: Omit<User, "id">, password: string): User {
-  const newUser: User = {
-    id: generateId(),
-    ...userData,
-  };
-  db.users.push(newUser);
-
-  // Store password
-  db.passwords[newUser.id] = password;
-
-  // Create a wallet for the new user
-  const newWallet: Wallet = {
-    id: generateId(),
-    user_id: newUser.id,
-    balance: 0,
-  };
-  db.wallets.push(newWallet);
-
-  return newUser;
+export async function verifyPassword(userId: string, password: string): Promise<boolean> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { password: true },
+    });
+    if (!user) return false;
+    // TODO: Use proper password hashing (bcrypt, argon2, etc.)
+    return user.password === password;
+  } catch (error) {
+    console.error("Error verifying password:", error);
+    return false;
+  }
 }
 
-export function verifyPassword(userId: string, password: string): boolean {
-  const storedPassword = db.passwords[userId];
-  return storedPassword === password;
-}
-
-export function updateUser(
+export async function updateUser(
   userId: string,
   updates: Partial<Omit<User, "id">>
-): User | null {
-  const user = findUser(undefined, userId);
-  if (!user) {
+): Promise<User | null> {
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        email: updates.email,
+        username: updates.username,
+        avatar_url: updates.avatar_url,
+        theme: updates.theme,
+        vitrin_connected: updates.vitrin_connected,
+        vitrin_user_id: updates.vitrin_user_id,
+      },
+      include: { wallet: true },
+    });
+    return mapPrismaUserToUser(updatedUser);
+  } catch (error) {
+    console.error("Error updating user:", error);
     return null;
   }
-
-  // Update user properties
-  Object.assign(user, updates);
-  return user;
 }
 
 // Session functions
-export function createSession(userId: string, token: string, expiresInHours: number = 24): Session {
-  const expiresAt = new Date();
-  expiresAt.setHours(expiresAt.getHours() + expiresInHours);
+export async function createSession(
+  userId: string,
+  token: string,
+  expiresInHours: number = 24
+): Promise<Session> {
+  try {
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + expiresInHours);
 
-  const newSession: Session = {
-    id: generateId(),
-    user_id: userId,
-    token,
-    expires_at: expiresAt,
-    created_at: new Date(),
-  };
+    const newSession = await prisma.session.create({
+      data: {
+        user_id: userId,
+        token,
+        expires_at: expiresAt,
+      },
+    });
 
-  db.sessions.push(newSession);
-  return newSession;
+    return mapPrismaSessionToSession(newSession);
+  } catch (error) {
+    console.error("Error creating session:", error);
+    throw error;
+  }
 }
 
-export function findSession(token: string): Session | undefined {
-  const session = db.sessions.find((s) => s.token === token);
-  
-  // Check if session is expired
-  if (session && session.expires_at < new Date()) {
-    // Remove expired session
-    db.sessions = db.sessions.filter((s) => s.id !== session.id);
+export async function findSession(token: string): Promise<Session | undefined> {
+  try {
+    const session = await prisma.session.findUnique({
+      where: { token },
+    });
+
+    if (!session) return undefined;
+
+    // Check if session is expired
+    if (session.expires_at < new Date()) {
+      // Remove expired session
+      await prisma.session.delete({
+        where: { id: session.id },
+      });
+      return undefined;
+    }
+
+    return mapPrismaSessionToSession(session);
+  } catch (error) {
+    console.error("Error finding session:", error);
     return undefined;
   }
-  
-  return session;
 }
 
-export function deleteSession(token: string): boolean {
-  const initialLength = db.sessions.length;
-  db.sessions = db.sessions.filter((s) => s.token !== token);
-  return db.sessions.length < initialLength;
+export async function deleteSession(token: string): Promise<boolean> {
+  try {
+    await prisma.session.delete({
+      where: { token },
+    });
+    return true;
+  } catch (error) {
+    // If session doesn't exist, Prisma throws an error
+    return false;
+  }
 }
 
 // Wallet functions
-export function getWallet(userId: string): Wallet | undefined {
-  return db.wallets.find((wallet) => wallet.user_id === userId);
+export async function getWallet(userId: string): Promise<Wallet | undefined> {
+  try {
+    const wallet = await prisma.wallet.findUnique({
+      where: { user_id: userId },
+    });
+    if (!wallet) return undefined;
+    return mapPrismaWalletToWallet(wallet);
+  } catch (error) {
+    console.error("Error getting wallet:", error);
+    return undefined;
+  }
 }
 
-export function updateBalance(userId: string, amount: number): Wallet | null {
-  const wallet = getWallet(userId);
-  if (!wallet) {
+export async function updateBalance(userId: string, amount: number): Promise<Wallet | null> {
+  try {
+    const wallet = await prisma.wallet.update({
+      where: { user_id: userId },
+      data: {
+        balance: {
+          increment: amount,
+        },
+      },
+    });
+    return mapPrismaWalletToWallet(wallet);
+  } catch (error) {
+    console.error("Error updating balance:", error);
     return null;
   }
-
-  wallet.balance += amount;
-  return wallet;
 }
 
 // Transaction functions
-export function addTransaction(
+export async function addTransaction(
   userId: string,
   transactionData: Omit<Transaction, "id" | "date">
-): Transaction {
-  const newTransaction: Transaction & { user_id: string } = {
-    id: generateId(),
-    date: new Date(),
-    user_id: userId,
-    ...transactionData,
-  };
+): Promise<Transaction> {
+  try {
+    const newTransaction = await prisma.transaction.create({
+      data: {
+        user_id: userId,
+        type: transactionData.type,
+        amount: transactionData.amount,
+        source: transactionData.source,
+        status: transactionData.status,
+        date: new Date(),
+      },
+    });
 
-  db.transactions.push(newTransaction as Transaction);
-  return newTransaction;
+    return mapPrismaTransactionToTransaction(newTransaction);
+  } catch (error) {
+    console.error("Error adding transaction:", error);
+    throw error;
+  }
 }
 
-export function getTransactions(userId: string): Transaction[] {
-  // Get wallet for user to find transactions
-  const wallet = getWallet(userId);
-  if (!wallet) {
+export async function getTransactions(userId: string): Promise<Transaction[]> {
+  try {
+    const transactions = await prisma.transaction.findMany({
+      where: { user_id: userId },
+      orderBy: { date: "desc" },
+    });
+
+    return transactions.map(mapPrismaTransactionToTransaction);
+  } catch (error) {
+    console.error("Error getting transactions:", error);
     return [];
   }
-  
-  // Filter transactions by user_id (we'll need to add user_id to transactions)
-  // For now, we'll store transactions with a user_id reference
-  return db.transactions.filter((tx) => {
-    // Check if transaction has user_id property (we'll add this when creating transactions)
-    return (tx as any).user_id === userId;
-  });
 }
 
-// Export the database for direct access if needed (use with caution)
-export function getDb(): Database {
-  return db;
+// Helper functions to map Prisma types to application types
+function mapPrismaUserToUser(user: any): User {
+  return {
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    avatar_url: user.avatar_url,
+    theme: user.theme,
+    vitrin_connected: user.vitrin_connected,
+    vitrin_user_id: user.vitrin_user_id || undefined,
+  };
 }
 
+function mapPrismaWalletToWallet(wallet: any): Wallet {
+  return {
+    id: wallet.id,
+    user_id: wallet.user_id,
+    balance: wallet.balance,
+  };
+}
+
+function mapPrismaSessionToSession(session: any): Session {
+  return {
+    id: session.id,
+    user_id: session.user_id,
+    token: session.token,
+    expires_at: session.expires_at,
+    created_at: session.created_at,
+  };
+}
+
+function mapPrismaTransactionToTransaction(transaction: any): Transaction {
+  return {
+    id: transaction.id,
+    type: transaction.type as "reward" | "swap" | "system",
+    amount: transaction.amount,
+    source: transaction.source || undefined,
+    status: transaction.status,
+    date: transaction.date,
+  };
+}

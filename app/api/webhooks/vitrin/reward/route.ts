@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     }
 
     // Find user by vitrin_user_id (webhook sends vitrin_user_id)
-    const user = findUserByVitrinId(user_id);
+    const user = await findUserByVitrinId(user_id);
 
     if (!user) {
       return NextResponse.json(
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     }
 
     // Credit balance
-    const wallet = updateBalance(user.id, amount);
+    const wallet = await updateBalance(user.id, amount);
     if (!wallet) {
       return NextResponse.json(
         { error: "Failed to update wallet" },
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     }
 
     // Record reward transaction
-    addTransaction(user.id, {
+    await addTransaction(user.id, {
       type: "reward",
       amount: amount,
       status: "completed",

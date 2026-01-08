@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     }
 
     // Get wallet
-    const wallet = getWallet(user.id);
+    const wallet = await getWallet(user.id);
     if (!wallet) {
       return NextResponse.json(
         { error: "Wallet not found" },
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     }
 
     // ATOMIC TRANSACTION: Debit Y-COIN immediately
-    const debitResult = updateBalance(user.id, -amount);
+    const debitResult = await updateBalance(user.id, -amount);
     if (!debitResult) {
       return NextResponse.json(
         { error: "Failed to update balance" },
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
 
     if (!vitrinResult.success) {
       // ROLLBACK: Credit Y-COIN back on failure
-      updateBalance(user.id, amount);
+      await updateBalance(user.id, amount);
 
       return NextResponse.json(
         { error: vitrinResult.error || "Swap failed" },
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
     }
 
     // SUCCESS: Record swap transaction
-    addTransaction(user.id, {
+    await addTransaction(user.id, {
       type: "swap",
       amount: -amount, // Negative because it's a debit
       status: "completed",

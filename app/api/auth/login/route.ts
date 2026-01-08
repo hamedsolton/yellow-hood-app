@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     }
 
     // Find user
-    const user = findUser(email);
+    const user = await findUser(email);
     if (!user) {
       return NextResponse.json(
         { error: "Invalid email or password" },
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     }
 
     // Verify password
-    const isValidPassword = verifyPassword(user.id, password);
+    const isValidPassword = await verifyPassword(user.id, password);
     if (!isValidPassword) {
       return NextResponse.json(
         { error: "Invalid email or password" },
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     const token = randomBytes(32).toString("hex");
 
     // Create session
-    createSession(user.id, token, 24); // 24 hours expiration
+    await createSession(user.id, token, 24); // 24 hours expiration
 
     // Create response with token and user
     const response = NextResponse.json({ token, user }, { status: 200 });

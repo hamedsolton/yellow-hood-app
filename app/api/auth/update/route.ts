@@ -23,7 +23,7 @@ export async function PUT(request: Request) {
       updates.theme = theme;
     }
 
-    const updatedUser = updateUser(user.id, updates);
+    const updatedUser = await updateUser(user.id, updates);
 
     if (!updatedUser) {
       return NextResponse.json(

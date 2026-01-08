@@ -12,16 +12,11 @@ export async function GET(request: Request) {
 
     const { user } = authResult;
 
-    // Get transactions for user
-    const transactions = getTransactions(user.id);
-
-    // Sort by date (newest first)
-    const sortedTransactions = transactions.sort(
-      (a, b) => b.date.getTime() - a.date.getTime()
-    );
+    // Get transactions for user (already sorted by date desc)
+    const transactions = await getTransactions(user.id);
 
     return NextResponse.json(
-      { transactions: sortedTransactions },
+      { transactions },
       { status: 200 }
     );
   } catch (error) {

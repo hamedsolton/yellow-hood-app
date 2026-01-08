@@ -13,7 +13,7 @@ export async function getCurrentUser(request: Request): Promise<{ user: any; err
   }
 
   const token = authHeader.substring(7); // Remove "Bearer " prefix
-  const session = findSession(token);
+  const session = await findSession(token);
 
   if (!session) {
     return {
@@ -24,7 +24,7 @@ export async function getCurrentUser(request: Request): Promise<{ user: any; err
     };
   }
 
-  const user = findUser(undefined, session.user_id);
+  const user = await findUser(undefined, session.user_id);
 
   if (!user) {
     return {
