@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15-alpine
@@ -20,6 +18,22 @@ services:
       retries: 5
     networks:
       - yellow-hood-network
+
+  # nextjs:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: yellow-hood-nextjs
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${NEXTJS_PORT:-3000}:3000"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - NEXT_TELEMETRY_DISABLED=1
+  #   networks:
+  #     - yellow-hood-network
+  #   depends_on:
+  #     - postgres
 
 volumes:
   postgres_data:

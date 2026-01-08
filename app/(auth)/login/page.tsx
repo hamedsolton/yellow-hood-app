@@ -99,7 +99,7 @@ export default function LoginPage() {
 
           <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-divider">
             <span className="text-sm text-default-500">
-              Don't have an account?
+              Don&apos;t have an account?
             </span>
             <NextUILink
               as={Link}
