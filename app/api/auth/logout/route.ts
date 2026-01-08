@@ -24,10 +24,15 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json(
+    // Create response and clear auth cookie
+    const response = NextResponse.json(
       { message: "Logged out successfully" },
       { status: 200 }
     );
+    
+    response.cookies.delete("auth_token");
+
+    return response;
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },

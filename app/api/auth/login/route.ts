@@ -39,8 +39,19 @@ export async function POST(request: Request) {
     // Create session
     createSession(user.id, token, 24); // 24 hours expiration
 
-    // Return token and user
-    return NextResponse.json({ token, user }, { status: 200 });
+    // Create response with token and user
+    const response = NextResponse.json({ token, user }, { status: 200 });
+
+    // Set auth token cookie (24 hours expiration)
+    response.cookies.set("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60, // 24 hours in seconds
+      path: "/",
+    });
+
+    return response;
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },
