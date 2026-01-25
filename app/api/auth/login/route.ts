@@ -15,9 +15,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Find user
-    const user = await findUser(email);
+    // Find user (trim email to handle whitespace)
+    const trimmedEmail = email.trim().toLowerCase();
+    const user = await findUser(trimmedEmail);
     if (!user) {
+      console.error("User not found for email:", trimmedEmail);
       return NextResponse.json(
         { error: "Invalid email or password" },
         { status: 401 }
@@ -27,6 +29,7 @@ export async function POST(request: Request) {
     // Verify password
     const isValidPassword = await verifyPassword(user.id, password);
     if (!isValidPassword) {
+      console.error("Password verification failed for email:", trimmedEmail, "user ID:", user.id);
       return NextResponse.json(
         { error: "Invalid email or password" },
         { status: 401 }

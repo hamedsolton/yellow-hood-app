@@ -1,5 +1,6 @@
 import type { User, Wallet, Session, Transaction } from "@/types";
 import { prisma } from "./prisma";
+import bcrypt from "bcrypt";
 
 // User functions
 export async function findUser(email?: string, id?: string): Promise<User | undefined> {
@@ -13,8 +14,10 @@ export async function findUser(email?: string, id?: string): Promise<User | unde
       return mapPrismaUserToUser(user);
     }
     if (email) {
+      // Normalize email to lowercase for case-insensitive lookup
+      const normalizedEmail = email.trim().toLowerCase();
       const user = await prisma.user.findUnique({
-        where: { email },
+        where: { email: normalizedEmail },
         include: { wallet: true },
       });
       if (!user) return undefined;
@@ -47,6 +50,7 @@ export async function createUser(
 ): Promise<User> {
   try {
     // Create user with wallet in a transaction
+    // @ts-expect-error - Prisma transaction client type is complex
     const result = await prisma.$transaction(async (tx) => {
       // Create user
       const newUser = await tx.user.create({
@@ -57,7 +61,7 @@ export async function createUser(
           theme: userData.theme,
           vitrin_connected: userData.vitrin_connected,
           vitrin_user_id: userData.vitrin_user_id,
-          password: password, // TODO: Hash password before storing
+          password: await bcrypt.hash(password, 10), // Hash password before storing
         },
       });
 
@@ -92,9 +96,27 @@ export async function verifyPassword(userId: string, password: string): Promise<
       where: { id: userId },
       select: { password: true },
     });
-    if (!user) return false;
-    // TODO: Use proper password hashing (bcrypt, argon2, etc.)
-    return user.password === password;
+    if (!user) {
+      console.error("User not found for password verification");
+      return false;
+    }
+
+    // Check if password is already a bcrypt hash (starts with $2a$, $2b$, or $2y$)
+    const isBcryptHash = /^\$2[aby]\$/.test(user.password);
+    
+    if (isBcryptHash) {
+      // Compare password with bcrypt hash
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) {
+        console.error("Password comparison failed for user:", userId);
+      }
+      return isValid;
+    } else {
+      // Legacy plain text password (for backward compatibility)
+      // In production, you should migrate all plain text passwords to hashed
+      console.warn("Using plain text password comparison for user:", userId);
+      return user.password === password;
+    }
   } catch (error) {
     console.error("Error verifying password:", error);
     return false;
