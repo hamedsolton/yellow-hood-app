@@ -1,6 +1,6 @@
 import type { User, Wallet, Session, Transaction } from "@/types";
 import { prisma } from "./prisma";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 // User functions
 export async function findUser(email?: string, id?: string): Promise<User | undefined> {
@@ -50,7 +50,6 @@ export async function createUser(
 ): Promise<User> {
   try {
     // Create user with wallet in a transaction
-    // @ts-expect-error - Prisma transaction client type is complex
     const result = await prisma.$transaction(async (tx) => {
       // Create user
       const newUser = await tx.user.create({
@@ -61,7 +60,7 @@ export async function createUser(
           theme: userData.theme,
           vitrin_connected: userData.vitrin_connected,
           vitrin_user_id: userData.vitrin_user_id,
-          password: await bcrypt.hash(password, 10), // Hash password before storing
+          password: await bcrypt.hash(password, 10), // bcryptjs: hash before storing
         },
       });
 
@@ -101,11 +100,11 @@ export async function verifyPassword(userId: string, password: string): Promise<
       return false;
     }
 
-    // Check if password is already a bcrypt hash (starts with $2a$, $2b$, or $2y$)
+    // Check if password is already a bcrypt-style hash (starts with $2a$, $2b$, or $2y$)
     const isBcryptHash = /^\$2[aby]\$/.test(user.password);
     
     if (isBcryptHash) {
-      // Compare password with bcrypt hash
+      // Compare password with stored hash (bcryptjs compatible with bcrypt hashes)
       const isValid = await bcrypt.compare(password, user.password);
       if (!isValid) {
         console.error("Password comparison failed for user:", userId);

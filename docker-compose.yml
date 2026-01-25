@@ -25,11 +25,14 @@ services:
       dockerfile: Dockerfile
     container_name: yellow-hood-nextjs
     restart: unless-stopped
+    env_file: .env
     ports:
       - "${NEXTJS_PORT:-3000}:3000"
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
+      # Use postgres service name as host (not localhost) so the container can reach the DB
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-yellow_hood_db}?schema=public
     networks:
       - yellow-hood-network
     depends_on:

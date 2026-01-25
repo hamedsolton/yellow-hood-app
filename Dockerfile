@@ -12,12 +12,15 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
+RUN npx prisma generate
 # Create public directory if it doesn't exist
 RUN mkdir -p public
 
 # Disable telemetry during build
 ENV NEXT_TELEMETRY_DISABLED 1
+
+# Placeholder so "Collecting page data" can load API routes that import prisma (build does not open a connection)
+ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/yellow_hood_db?schema=public
 
 RUN npm run build
 
