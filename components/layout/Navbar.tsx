@@ -14,12 +14,13 @@ import {
 } from "@nextui-org/react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { Moon, Sun, Settings, LogOut } from "lucide-react";
+import { Settings, LogOut } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
+import { MoonLinearIcon, SunLinearIcon } from "@/components/ui/icons";
 
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
@@ -78,12 +79,12 @@ export default function Navbar() {
           >
             {mounted ? (
               theme === "dark" ? (
-                <Sun className="w-5 h-5" />
+                <SunLinearIcon size={20} className="w-5 h-5" />
               ) : (
-                <Moon className="w-5 h-5" />
+                <MoonLinearIcon size={20} className="w-5 h-5" />
               )
             ) : (
-              <Sun className="w-5 h-5" />
+              <SunLinearIcon size={20} className="w-5 h-5" />
             )}
           </Button>
         </NavbarItem>

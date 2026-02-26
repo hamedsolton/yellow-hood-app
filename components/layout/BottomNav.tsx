@@ -2,16 +2,46 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Wallet, Gamepad2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/useAuthStore";
+import type { IconProps } from "@/components/ui/icons";
+import {
+  GamesBoldIcon,
+  GamesLinearIcon,
+  HomeBoldIcon,
+  HomeLinearIcon,
+  WalletBoldIcon,
+  WalletLinearIcon,
+} from "@/components/ui/icons";
+
+type NavItem = {
+  label: string;
+  href: string;
+  activeIcon: React.FC<IconProps>;
+  inactiveIcon: React.FC<IconProps>;
+};
 
 // Order: Games (left), Home (center), Wallet (right)
-const navItems = [
-  { label: "Games", href: "/games", icon: Gamepad2 },
-  { label: "Home", href: "/", icon: Home },
-  { label: "Wallet", href: "/wallet", icon: Wallet },
+const navItems: NavItem[] = [
+  {
+    label: "Games",
+    href: "/games",
+    activeIcon: GamesBoldIcon,
+    inactiveIcon: GamesLinearIcon,
+  },
+  {
+    label: "Home",
+    href: "/home",
+    activeIcon: HomeBoldIcon,
+    inactiveIcon: HomeLinearIcon,
+  },
+  {
+    label: "Wallet",
+    href: "/wallet",
+    activeIcon: WalletBoldIcon,
+    inactiveIcon: WalletLinearIcon,
+  },
 ];
 
 const AUTH_PATHS = ["/login", "/signup"];
@@ -30,8 +60,7 @@ export default function BottomNav() {
 
   const isActive = (href: string) => {
     if (!mounted) return false;
-    if (href === "/") return pathname === "/";
-    return pathname.startsWith(href);
+    return pathname === href || pathname.startsWith(`${href}/`);
   };
 
   if (!shouldShow) return null;
@@ -46,8 +75,8 @@ export default function BottomNav() {
     >
       <div className="flex items-center gap-12">
         {navItems.map((item) => {
-          const Icon = item.icon;
           const active = isActive(item.href);
+          const Icon = active ? item.activeIcon : item.inactiveIcon;
           return (
             <Link
               key={item.href}
@@ -60,7 +89,7 @@ export default function BottomNav() {
               aria-current={active ? "page" : undefined}
               aria-label={item.label}
             >
-              <Icon size={32} strokeWidth={1.5} aria-hidden />
+              <Icon size={32} className="w-8 h-8" aria-hidden />
             </Link>
           );
         })}

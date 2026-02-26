@@ -13,11 +13,12 @@ import {
   TableCell,
   Chip,
 } from "@nextui-org/react";
-import { Coins, ArrowRightLeft, History } from "lucide-react";
+import { History } from "lucide-react";
 import { useWalletStore } from "@/store/useWalletStore";
 import SwapModal from "./SwapModal";
 import { toast } from "sonner";
 import type { Transaction } from "@/types";
+import { SwapLinearIcon, YCoinIcon } from "@/components/ui/icons";
 
 export default function WalletDashboard() {
   const { balance, transactions, fetchBalance, fetchTransactions } =
@@ -85,7 +86,10 @@ export default function WalletDashboard() {
           <div className="flex items-center justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-default-500 text-sm">
-                <Coins className="w-4 h-4" />
+                <YCoinIcon
+                  size={16}
+                  className="w-4 h-4 text-default-400"
+                />
                 <span>Total Balance</span>
               </div>
               <h2 className="text-5xl font-bold text-foreground">
@@ -94,7 +98,7 @@ export default function WalletDashboard() {
               <p className="text-sm text-default-500">Y-COIN</p>
             </div>
             <div className="w-20 h-20 rounded-full bg-primary/20 border-2 border-primary/40 flex items-center justify-center shadow-lg shadow-primary/30">
-              <Coins className="w-10 h-10 text-primary" />
+              <YCoinIcon size={40} className="w-10 h-10 text-primary" />
             </div>
           </div>
         </CardBody>
@@ -107,7 +111,7 @@ export default function WalletDashboard() {
           size="lg"
           onPress={() => setIsSwapModalOpen(true)}
           className="font-semibold shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all min-w-[200px]"
-          startContent={<ArrowRightLeft className="w-5 h-5" />}
+          startContent={<SwapLinearIcon size={20} className="w-5 h-5" />}
         >
           Swap Y-COIN
         </Button>
