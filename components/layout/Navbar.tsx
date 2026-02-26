@@ -4,9 +4,6 @@ import {
   Navbar as NextUINavbar,
   NavbarContent,
   NavbarItem,
-  NavbarMenu,
-  NavbarMenuItem,
-  NavbarMenuToggle,
   Link as NextUILink,
   Avatar,
   Dropdown,
@@ -17,20 +14,19 @@ import {
 } from "@nextui-org/react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { Moon, Sun, Home, Wallet, Gamepad2, Settings, LogOut } from "lucide-react";
+import { Moon, Sun, Settings, LogOut } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const { user, isAuthenticated, logout } = useAuthStore();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Prevent hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -45,48 +41,34 @@ export default function Navbar() {
     }
   };
 
-  // TODO: Home href "/" causes redirect to /home; using "/home" would avoid extra hop
-  const navItems = [
-    { label: "Home", href: "/", icon: Home },
-    { label: "Wallet", href: "/wallet", icon: Wallet },
-    { label: "Games", href: "/games", icon: Gamepad2 },
-  ];
-
   return (
     <NextUINavbar
-      onMenuOpenChange={setIsMenuOpen}
       maxWidth="xl"
       className="bg-background/80 backdrop-blur-md border-b border-divider"
     >
-      <NavbarContent>
-        <NavbarMenuToggle
-          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-          className="sm:hidden"
-        />
+      <NavbarContent justify="start">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-            <span className="text-black font-bold text-sm">YH</span>
+          <div className="relative w-8 h-8 flex shrink-0 items-center justify-center">
+            <Image
+              src="/Yellow-hood-light-icon.svg"
+              alt="Yellow Hood Logo"
+              width={32}
+              height={32}
+              className="object-contain dark:hidden"
+            />
+            <Image
+              src="/Yellow-hood-dark-icon.svg"
+              alt="Yellow Hood Logo"
+              width={32}
+              height={32}
+              className="hidden object-contain dark:block"
+            />
           </div>
           <span className="font-bold text-xl text-foreground">Yellow Hood</span>
         </Link>
       </NavbarContent>
 
-      <NavbarContent className="hidden sm:flex gap-4" justify="center">
-        {navItems.map((item) => (
-          <NavbarItem key={item.href}>
-            <NextUILink
-              as={Link}
-              href={item.href}
-              className="text-foreground hover:text-primary transition-colors"
-            >
-              {item.label}
-            </NextUILink>
-          </NavbarItem>
-        ))}
-      </NavbarContent>
-
       <NavbarContent justify="end">
-        {/* Theme Switcher */}
         <NavbarItem>
           <Button
             isIconOnly
@@ -106,7 +88,6 @@ export default function Navbar() {
           </Button>
         </NavbarItem>
 
-        {/* User Menu */}
         {isAuthenticated && user ? (
           <NavbarItem>
             <Dropdown placement="bottom-end">
@@ -160,55 +141,6 @@ export default function Navbar() {
           </NavbarItem>
         )}
       </NavbarContent>
-
-      {/* Mobile Menu */}
-      <NavbarMenu>
-        {navItems.map((item, index) => {
-          const Icon = item.icon;
-          return (
-            <NavbarMenuItem key={`${item.href}-${index}`}>
-              <NextUILink
-                as={Link}
-                href={item.href}
-                className="w-full flex items-center gap-2 text-foreground"
-                size="lg"
-                onPress={() => setIsMenuOpen(false)}
-              >
-                <Icon className="w-5 h-5" />
-                {item.label}
-              </NextUILink>
-            </NavbarMenuItem>
-          );
-        })}
-        {isAuthenticated && (
-          <>
-            <NavbarMenuItem>
-              <NextUILink
-                as={Link}
-                href="/settings"
-                className="w-full flex items-center gap-2 text-foreground"
-                size="lg"
-                onPress={() => setIsMenuOpen(false)}
-              >
-                <Settings className="w-5 h-5" />
-                Settings
-              </NextUILink>
-            </NavbarMenuItem>
-            <NavbarMenuItem>
-              <Button
-                className="w-full justify-start"
-                variant="light"
-                color="danger"
-                startContent={<LogOut className="w-5 h-5" />}
-                onPress={handleLogout}
-              >
-                Logout
-              </Button>
-            </NavbarMenuItem>
-          </>
-        )}
-      </NavbarMenu>
     </NextUINavbar>
   );
 }
-
