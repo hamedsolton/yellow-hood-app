@@ -4,7 +4,6 @@ import {
   Navbar as NextUINavbar,
   NavbarContent,
   NavbarItem,
-  Link as NextUILink,
   Avatar,
   Dropdown,
   DropdownTrigger,
@@ -43,10 +42,7 @@ export default function Navbar() {
   };
 
   return (
-    <NextUINavbar
-      maxWidth="xl"
-      className="bg-background/80 backdrop-blur-md border-b border-divider"
-    >
+    <NextUINavbar maxWidth="xl">
       <NavbarContent justify="start">
         <Link href="/" className="flex items-center gap-2">
           <div className="relative w-8 h-8 flex shrink-0 items-center justify-center">
@@ -65,7 +61,7 @@ export default function Navbar() {
               className="hidden object-contain dark:block"
             />
           </div>
-          <span className="font-bold text-xl text-foreground">Yellow Hood</span>
+          <span className="font-bold text-xl">Yellow Hood</span>
         </Link>
       </NavbarContent>
 
@@ -79,12 +75,12 @@ export default function Navbar() {
           >
             {mounted ? (
               theme === "dark" ? (
-                <SunLinearIcon size={20} className="w-5 h-5" />
+                <SunLinearIcon size={20} />
               ) : (
-                <MoonLinearIcon size={20} className="w-5 h-5" />
+                <MoonLinearIcon size={20} />
               )
             ) : (
-              <SunLinearIcon size={20} className="w-5 h-5" />
+              <SunLinearIcon size={20} />
             )}
           </Button>
         </NavbarItem>
@@ -102,11 +98,7 @@ export default function Navbar() {
                 />
               </DropdownTrigger>
               <DropdownMenu aria-label="User menu" variant="flat">
-                <DropdownItem
-                  key="profile"
-                  textValue="Profile"
-                  className="h-14 gap-2"
-                >
+                <DropdownItem key="profile" textValue="Profile" isReadOnly className="h-14 gap-2">
                   <p className="font-semibold">Signed in as</p>
                   <p className="text-sm text-default-500">{user.email}</p>
                 </DropdownItem>
@@ -130,13 +122,7 @@ export default function Navbar() {
           </NavbarItem>
         ) : (
           <NavbarItem>
-            <Button
-              as={Link}
-              href="/login"
-              variant="flat"
-              color="primary"
-              size="sm"
-            >
+            <Button as={Link} href="/login" variant="flat" color="primary" size="sm">
               Login
             </Button>
           </NavbarItem>

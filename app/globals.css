@@ -2,23 +2,3 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --color-primary: #52525b;
-  --color-secondary: #f79109;
-  --color-background: #ffffff;
-  --color-foreground: #09090b;
-  --color-text-primary: #09090b;
-  --color-text-secondary: #71717a;
-  --color-text-disabled: #a1a1aa;
-}
-
-.dark {
-  --color-primary: #d4d4d8;
-  --color-secondary: #f79109;
-  --color-background: #09090b;
-  --color-foreground: #fafafa;
-  --color-text-primary: #fafafa;
-  --color-text-secondary: #71717a;
-  --color-text-disabled: #a1a1aa;
-}
-

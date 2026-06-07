@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,32 +7,30 @@ datasource db {
 }
 
 model User {
-  id              String   @id @default(uuid())
-  email           String   @unique
-  username        String
-  avatar_url      String?
-  theme           String   @default("light")
-  vitrin_connected Boolean  @default(false)
-  vitrin_user_id  String?
-  password        String   // Store hashed password
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  wallet      Wallet?
-  sessions    Session[]
-  transactions Transaction[]
+  id               String        @id @default(uuid())
+  email            String        @unique
+  username         String
+  avatar_url       String?
+  theme            String        @default("light")
+  vitrin_connected Boolean       @default(false)
+  vitrin_user_id   String?
+  password         String
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+  sessions         Session[]
+  transactions     Transaction[]
+  wallet           Wallet?
 
   @@map("users")
 }
 
 model Wallet {
-  id        String   @id @default(uuid())
-  user_id   String   @unique
-  balance   Float    @default(0)
+  id         String   @id @default(uuid())
+  user_id    String   @unique
+  balance    Float    @default(0)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("wallets")
 }
@@ -46,39 +41,37 @@ model Session {
   token      String   @unique
   expires_at DateTime
   created_at DateTime @default(now())
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@map("sessions")
   @@index([token])
   @@index([user_id])
+  @@map("sessions")
 }
 
 model Transaction {
-  id        String   @id @default(uuid())
-  user_id   String
-  type      String   // "reward" | "swap" | "system"
-  amount    Float
-  source    String?
-  status    String
-  date      DateTime @default(now())
+  id         String   @id @default(uuid())
+  user_id    String
+  type       String
+  amount     Float
+  source     String?
+  status     String
+  date       DateTime @default(now())
   created_at DateTime @default(now())
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@map("transactions")
   @@index([user_id])
   @@index([date])
+  @@map("transactions")
 }
 
 model Game {
-  id           String @id @default(uuid())
-  title        String
+  id            String   @id @default(uuid())
+  title         String
   thumbnail_url String
-  category     String
-  external_url String
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  category      String
+  external_url  String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 
   @@map("games")
 }

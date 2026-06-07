@@ -18,6 +18,7 @@ export function withRouteErrorBoundary(
         return options.onError(error);
       }
 
+      console.error("[route-error-boundary]", error);
       return NextResponse.json(
         { error: "Internal server error" },
         { status: 500 }
