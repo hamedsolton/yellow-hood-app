@@ -53,7 +53,7 @@ export default function LoginPage() {
             <Input
               type="email"
               label="Email"
-              placeholder="Enter your email"
+              labelPlacement="outside"
               value={email}
               onValueChange={setEmail}
               startContent={<Mail className="w-4 h-4 text-default-400" />}
@@ -61,14 +61,14 @@ export default function LoginPage() {
               variant="bordered"
               classNames={{
                 input: "text-foreground",
-                label: "text-foreground",
+                label: "text-foreground font-medium",
                 inputWrapper: "border-default-200 hover:border-primary/50 focus-within:border-primary",
               }}
             />
             <Input
               type="password"
               label="Password"
-              placeholder="Enter your password"
+              labelPlacement="outside"
               value={password}
               onValueChange={setPassword}
               startContent={<Lock className="w-4 h-4 text-default-400" />}
@@ -76,7 +76,7 @@ export default function LoginPage() {
               variant="bordered"
               classNames={{
                 input: "text-foreground",
-                label: "text-foreground",
+                label: "text-foreground font-medium",
                 inputWrapper: "border-default-200 hover:border-primary/50 focus-within:border-primary",
               }}
             />
