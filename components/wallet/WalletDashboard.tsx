@@ -21,17 +21,14 @@ import type { Transaction } from "@/types";
 import { SwapLinearIcon, YCoinIcon } from "@/components/ui/icons";
 
 export default function WalletDashboard() {
-  const { balance, transactions, fetchBalance, fetchTransactions } =
-    useWalletStore();
+  const { balance, transactions, fetchBalance, fetchTransactions } = useWalletStore();
   const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([fetchBalance(), fetchTransactions()])
       .catch((err) => {
-        toast.error(
-          err?.response?.data?.error || "Couldn't load wallet. Please try again."
-        );
+        toast.error(err?.response?.data?.error || "Couldn't load wallet. Please try again.");
       })
       .finally(() => setInitialLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -48,91 +45,71 @@ export default function WalletDashboard() {
     }).format(d);
   };
 
-  const formatAmount = (amount: number) => {
-    return `${amount >= 0 ? "+" : ""}${amount.toFixed(2)} Y-COIN`;
-  };
+  const formatAmount = (amount: number) =>
+    `${amount >= 0 ? "+" : ""}${amount.toFixed(2)} Y-COIN`;
 
-  const getTransactionTypeColor = (type: Transaction["type"]) => {
+  const getTypeColor = (type: Transaction["type"]) => {
     switch (type) {
-      case "reward":
-        return "success";
-      case "swap":
-        return "warning";
-      case "system":
-        return "default";
-      default:
-        return "default";
+      case "reward": return "success";
+      case "swap": return "warning";
+      default: return "default";
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case "completed":
-        return "success";
-      case "pending":
-        return "warning";
-      case "failed":
-        return "danger";
-      default:
-        return "default";
+      case "completed": return "success";
+      case "pending": return "warning";
+      case "failed": return "danger";
+      default: return "default";
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Balance Card */}
-      <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/30 shadow-xl shadow-primary/20">
+      <Card shadow="sm">
         <CardBody className="p-6">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-default-500 text-sm">
-                <YCoinIcon
-                  size={16}
-                  className="w-4 h-4 text-default-400"
-                />
+                <YCoinIcon size={16} />
                 <span>Total Balance</span>
               </div>
-              <h2 className="text-5xl font-bold text-foreground">
+              <h2 className="text-5xl font-bold">
                 {initialLoading ? "Loading…" : balance.toFixed(2)}
               </h2>
               <p className="text-sm text-default-500">Y-COIN</p>
             </div>
-            <div className="w-20 h-20 rounded-full bg-primary/20 border-2 border-primary/40 flex items-center justify-center shadow-lg shadow-primary/30">
-              <YCoinIcon size={40} className="w-10 h-10 text-primary" />
+            <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center">
+              <YCoinIcon size={40} className="text-primary" />
             </div>
           </div>
         </CardBody>
       </Card>
 
-      {/* Swap Button */}
       <div className="flex justify-center">
         <Button
           color="primary"
           size="lg"
           onPress={() => setIsSwapModalOpen(true)}
-          className="font-semibold shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all min-w-[200px]"
-          startContent={<SwapLinearIcon size={20} className="w-5 h-5" />}
+          className="font-semibold"
+          startContent={<SwapLinearIcon size={20} />}
         >
           Swap Y-COIN
         </Button>
       </div>
 
-      {/* Transaction History */}
-      <Card className="bg-content1 border border-default-200">
+      <Card shadow="sm">
         <CardBody className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <History className="w-5 h-5 text-primary" />
-            <h3 className="text-xl font-bold text-foreground">Transaction History</h3>
+            <h3 className="text-xl font-bold">Transaction History</h3>
           </div>
 
           {initialLoading ? (
-            <div className="text-center py-8 text-default-500">
-              Loading…
-            </div>
+            <p className="text-center py-8 text-default-500">Loading…</p>
           ) : transactions.length === 0 ? (
-            <div className="text-center py-8 text-default-500">
-              No transactions yet.
-            </div>
+            <p className="text-center py-8 text-default-500">No transactions yet.</p>
           ) : (
             <Table aria-label="Transaction history" removeWrapper>
               <TableHeader>
@@ -146,29 +123,15 @@ export default function WalletDashboard() {
                   <TableRow key={transaction.id}>
                     <TableCell>{formatDate(transaction.date)}</TableCell>
                     <TableCell>
-                      <Chip
-                        color={getTransactionTypeColor(transaction.type)}
-                        variant="flat"
-                        size="sm"
-                      >
+                      <Chip color={getTypeColor(transaction.type)} variant="flat" size="sm">
                         {transaction.type.toUpperCase()}
                       </Chip>
                     </TableCell>
-                    <TableCell
-                      className={
-                        transaction.amount >= 0
-                          ? "text-success"
-                          : "text-danger"
-                      }
-                    >
+                    <TableCell className={transaction.amount >= 0 ? "text-success" : "text-danger"}>
                       {formatAmount(transaction.amount)}
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        color={getStatusColor(transaction.status)}
-                        variant="flat"
-                        size="sm"
-                      >
+                      <Chip color={getStatusColor(transaction.status)} variant="flat" size="sm">
                         {transaction.status}
                       </Chip>
                     </TableCell>
@@ -180,7 +143,6 @@ export default function WalletDashboard() {
         </CardBody>
       </Card>
 
-      {/* Swap Modal */}
       <SwapModal
         isOpen={isSwapModalOpen}
         onClose={() => setIsSwapModalOpen(false)}
@@ -189,4 +151,3 @@ export default function WalletDashboard() {
     </div>
   );
 }
-

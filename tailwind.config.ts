@@ -1,46 +1,53 @@
 import type { Config } from "tailwindcss";
 import { nextui } from "@nextui-org/react";
+import path from "path";
+
+// resolve theme path regardless of worktree or monorepo setup
+const nextUIThemeDist = path.join(
+  path.dirname(require.resolve("@nextui-org/theme/package.json")),
+  "dist"
+);
 
 const config: Config = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
+    `${nextUIThemeDist}/**/*.{js,ts,jsx,tsx,mjs}`,
   ],
   theme: {
     // 8pt grid spacing scale (all tokens are multiples of 4px).
     spacing: {
       0: "0px",
-      1: "0.25rem", // 4px
-      2: "0.5rem", // 8px
-      3: "0.75rem", // 12px
-      4: "1rem", // 16px
-      5: "1.25rem", // 20px
-      6: "1.5rem", // 24px
-      7: "1.75rem", // 28px
-      8: "2rem", // 32px
-      9: "2.25rem", // 36px
-      10: "2.5rem", // 40px
-      11: "2.75rem", // 44px
-      12: "3rem", // 48px
-      14: "3.5rem", // 56px
-      16: "4rem", // 64px
-      20: "5rem", // 80px
-      24: "6rem", // 96px
-      28: "7rem", // 112px
-      32: "8rem", // 128px
-      36: "9rem", // 144px
-      40: "10rem", // 160px
-      44: "11rem", // 176px
-      48: "12rem", // 192px
-      52: "13rem", // 208px
-      56: "14rem", // 224px
-      60: "15rem", // 240px
-      64: "16rem", // 256px
-      72: "18rem", // 288px
-      80: "20rem", // 320px
-      96: "24rem", // 384px
+      1: "0.25rem",
+      2: "0.5rem",
+      3: "0.75rem",
+      4: "1rem",
+      5: "1.25rem",
+      6: "1.5rem",
+      7: "1.75rem",
+      8: "2rem",
+      9: "2.25rem",
+      10: "2.5rem",
+      11: "2.75rem",
+      12: "3rem",
+      14: "3.5rem",
+      16: "4rem",
+      20: "5rem",
+      24: "6rem",
+      28: "7rem",
+      32: "8rem",
+      36: "9rem",
+      40: "10rem",
+      44: "11rem",
+      48: "12rem",
+      52: "13rem",
+      56: "14rem",
+      60: "15rem",
+      64: "16rem",
+      72: "18rem",
+      80: "20rem",
+      96: "24rem",
     },
     extend: {
       fontFamily: {
@@ -48,48 +55,7 @@ const config: Config = {
         sans: ["var(--font-nunito)", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
       },
       fontSize: {
-        lead: ["1.25rem", { lineHeight: "1.6" }], // 20px subtitle / lead
-      },
-      fontWeight: {
-        body: "400",
-        label: "600",
-      },
-      letterSpacing: {
-        tight: "-0.02em",
-      },
-      borderRadius: {
-        "button-lg": "0.75rem", // shared large control radius
-      },
-      colors: {
-        // Semantic tokens (mapped to CSS variables)
-        primary: {
-          DEFAULT: "var(--color-primary)",
-        },
-        secondary: {
-          DEFAULT: "var(--color-secondary)",
-        },
-        background: "var(--color-background)",
-        foreground: "var(--color-foreground)",
-        text: {
-          primary: "var(--color-text-primary)",
-          secondary: "var(--color-text-secondary)",
-          disabled: "var(--color-text-disabled)",
-        },
-
-        // Brand yellow scale
-        yellow: {
-          50: "#FFFAEB",
-          100: "#FEF0C7",
-          200: "#FEDF89",
-          300: "#FEC84B",
-          400: "#FDB022",
-          500: "#F79109",
-          600: "#DC6803",
-          700: "#B54708",
-          800: "#93370D",
-          900: "#7A2E0E",
-          950: "#461602",
-        },
+        lead: ["1.25rem", { lineHeight: "1.6" }],
       },
     },
   },
@@ -97,32 +63,32 @@ const config: Config = {
   plugins: [
     nextui({
       themes: {
-        dark: {
-          colors: {
-            primary: {
-              DEFAULT: "#d4d4d8",
-              foreground: "#09090b",
-            },
-            secondary: {
-              DEFAULT: "#f79109",
-              foreground: "#09090b",
-            },
-            background: "#09090b",
-            foreground: "#fafafa",
-          },
-        },
         light: {
           colors: {
             primary: {
-              DEFAULT: "#52525b",
-              foreground: "#ffffff",
+              DEFAULT: "#F59E0B",
+              foreground: "#09090b",
             },
             secondary: {
-              DEFAULT: "#f79109",
-              foreground: "#09090b",
+              DEFAULT: "#78716c",
+              foreground: "#ffffff",
             },
             background: "#ffffff",
             foreground: "#09090b",
+          },
+        },
+        dark: {
+          colors: {
+            primary: {
+              DEFAULT: "#F59E0B",
+              foreground: "#09090b",
+            },
+            secondary: {
+              DEFAULT: "#57534e",
+              foreground: "#ffffff",
+            },
+            background: "#09090b",
+            foreground: "#fafafa",
           },
         },
       },

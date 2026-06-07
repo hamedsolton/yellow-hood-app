@@ -6,15 +6,17 @@ export default async function Home() {
   const cookieStore = cookies();
   const token = cookieStore.get("auth_token")?.value;
 
-  // If valid session exists, redirect to /home
   if (token) {
-    const session = await findSession(token);
-    if (session) {
-      redirect("/home");
+    try {
+      const session = await findSession(token);
+      if (session) {
+        redirect("/home");
+      }
+    } catch {
+      // DB unavailable — fall through to /login
     }
   }
 
-  // Otherwise, redirect to /login
   redirect("/login");
 }
 
